@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: eburon-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: eburon_home
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.api
+    container_name: eburon-api
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/eburon_home
+      NODE_ENV: development
+      PORT: 3000
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      JWT_EXPIRES_IN: 7d
+    ports:
+      - '3000:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../../apps/api:/app/apps/api
+      - ../../packages:/app/packages
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    command: pnpm --filter @eburon/api dev
+
+  admin-portal:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.admin
+    container_name: eburon-admin-portal
+    environment:
+      VITE_API_URL: http://localhost:3000
+    ports:
+      - '3001:3001'
+    depends_on:
+      - api
+    volumes:
+      - ../../apps/admin-portal:/app/apps/admin-portal
+      - ../../packages/ui:/app/packages/ui
+      - /app/node_modules
+      - /app/apps/admin-portal/node_modules
+    command: pnpm --filter @eburon/admin-portal dev
+
+  client-portal:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.client
+    container_name: eburon-client-portal
+    environment:
+      VITE_API_URL: http://localhost:3000
+      VITE_GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+    ports:
+      - '3002:3002'
+    depends_on:
+      - api
+    volumes:
+      - ../../apps/client-portal:/app/apps/client-portal
+      - ../../packages/ui:/app/packages/ui
+      - /app/node_modules
+      - /app/apps/client-portal/node_modules
+    command: pnpm --filter @eburon/client-portal dev
+
+  adminer:
+    image: adminer:latest
+    container_name: eburon-adminer
+    ports:
+      - '8080:8080'
+    depends_on:
+      - postgres
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+
+volumes:
+  postgres_data:

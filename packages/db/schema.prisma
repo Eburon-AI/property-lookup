@@ -1,0 +1,199 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  CONTRACTOR
+  OWNER
+  BROKER
+  TENANT
+}
+
+enum PropertyStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum MaintenanceType {
+  PLUMBING
+  ELECTRIC
+  APPLIANCE
+  HVAC
+  STRUCTURAL
+  OTHER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole
+  isActive  Boolean  @default(true)
+
+  contractorProfile ContractorProfile?
+  ownerProfile      OwnerProfile?
+  brokerProfile     BrokerProfile?
+  tenantProfile     TenantProfile?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+}
+
+model ContractorProfile {
+  id        String    @id @default(cuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String    @unique
+  company   String?
+  skills    String?
+
+  maintenanceRequests MaintenanceRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OwnerProfile {
+  id        String     @id @default(cuid())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String     @unique
+
+  properties Property[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BrokerProfile {
+  id        String     @id @default(cuid())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String     @unique
+  agency    String?
+
+  properties Property[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TenantProfile {
+  id        String     @id @default(cuid())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String     @unique
+
+  leases              Lease[]
+  maintenanceRequests MaintenanceRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Property {
+  id           String          @id @default(cuid())
+  title        String
+  description  String          @db.Text
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  region       String?
+  country      String
+  postalCode   String?
+
+  latitude     Float?
+  longitude    Float?
+
+  pricePerMonth Float
+  currency      String         @default("EUR")
+
+  bedrooms    Int
+  bathrooms   Int
+  areaSqm     Float?
+
+  amenities   String[]
+
+  images      String[]
+
+  status      PropertyStatus  @default(PUBLISHED)
+
+  owner       OwnerProfile?   @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  ownerId     String?
+
+  broker      BrokerProfile?  @relation(fields: [brokerId], references: [id], onDelete: SetNull)
+  brokerId    String?
+
+  leases              Lease[]
+  maintenanceRequests MaintenanceRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([city])
+  @@index([status])
+  @@index([pricePerMonth])
+  @@index([bedrooms])
+  @@index([ownerId])
+  @@index([brokerId])
+}
+
+model Lease {
+  id          String        @id @default(cuid())
+  property    Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId  String
+
+  tenant      TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId    String
+
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean       @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId])
+  @@index([tenantId])
+  @@index([isActive])
+}
+
+model MaintenanceRequest {
+  id           String           @id @default(cuid())
+  property     Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId   String
+
+  tenant       TenantProfile    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId     String
+
+  contractor   ContractorProfile? @relation(fields: [contractorId], references: [id], onDelete: SetNull)
+  contractorId String?
+
+  type         MaintenanceType
+  description  String           @db.Text
+  imageUrl     String?
+
+  status       MaintenanceStatus @default(OPEN)
+
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([propertyId])
+  @@index([tenantId])
+  @@index([contractorId])
+  @@index([status])
+  @@index([createdAt])
+}
