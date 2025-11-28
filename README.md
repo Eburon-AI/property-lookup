@@ -56,7 +56,6 @@ pnpm install
 3. **Set up environment variables**
 ```bash
 cp .env.example .env
-cp .env ./packages/db/.env
 # Edit .env with your configuration
 ```
 
