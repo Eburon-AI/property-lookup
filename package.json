@@ -9,6 +9,9 @@
   ],
   "scripts": {
     "dev": "turbo run dev",
+    "dev:api": "turbo run dev --filter=api",
+    "dev:client": "turbo run dev --filter=client-portal",
+    "dev:admin": "turbo run dev --filter=admin-portal",
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",

@@ -98,6 +98,9 @@ After seeding, use these credentials:
 
 ```bash
 pnpm dev          # Start all apps in development mode
+pnpm dev:api      # Start api in development mode
+pnpm dev:client   # Start only client app in development mode
+pnpm dev:admin    # Start only admin app in development mode
 pnpm build        # Build all apps for production
 pnpm test         # Run tests
 pnpm lint         # Lint all code
