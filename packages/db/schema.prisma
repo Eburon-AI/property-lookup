@@ -37,12 +37,12 @@ enum MaintenanceType {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      UserRole
-  isActive  Boolean  @default(true)
+  id       String   @id @default(cuid())
+  email    String   @unique
+  password String
+  name     String
+  role     UserRole
+  isActive Boolean  @default(true)
 
   contractorProfile ContractorProfile?
   ownerProfile      OwnerProfile?
@@ -57,11 +57,11 @@ model User {
 }
 
 model ContractorProfile {
-  id        String    @id @default(cuid())
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String    @unique
-  company   String?
-  skills    String?
+  id      String  @id @default(cuid())
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String  @unique
+  company String?
+  skills  String?
 
   maintenanceRequests MaintenanceRequest[]
 
@@ -70,9 +70,9 @@ model ContractorProfile {
 }
 
 model OwnerProfile {
-  id        String     @id @default(cuid())
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String     @unique
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
 
   properties Property[]
 
@@ -81,10 +81,10 @@ model OwnerProfile {
 }
 
 model BrokerProfile {
-  id        String     @id @default(cuid())
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String     @unique
-  agency    String?
+  id     String  @id @default(cuid())
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String  @unique
+  agency String?
 
   properties Property[]
 
@@ -93,9 +93,9 @@ model BrokerProfile {
 }
 
 model TenantProfile {
-  id        String     @id @default(cuid())
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String     @unique
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
 
   leases              Lease[]
   maintenanceRequests MaintenanceRequest[]
@@ -105,9 +105,9 @@ model TenantProfile {
 }
 
 model Property {
-  id           String          @id @default(cuid())
+  id           String  @id @default(cuid())
   title        String
-  description  String          @db.Text
+  description  String  @db.Text
   addressLine1 String
   addressLine2 String?
   city         String
@@ -115,27 +115,27 @@ model Property {
   country      String
   postalCode   String?
 
-  latitude     Float?
-  longitude    Float?
+  latitude  Float?
+  longitude Float?
 
   pricePerMonth Float
-  currency      String         @default("EUR")
+  currency      String @default("EUR")
 
-  bedrooms    Int
-  bathrooms   Int
-  areaSqm     Float?
+  bedrooms  Int
+  bathrooms Int
+  areaSqm   Float?
 
-  amenities   String[]
+  amenities String[]
 
-  images      String[]
+  images String[]
 
-  status      PropertyStatus  @default(PUBLISHED)
+  status PropertyStatus @default(PUBLISHED)
 
-  owner       OwnerProfile?   @relation(fields: [ownerId], references: [id], onDelete: SetNull)
-  ownerId     String?
+  owner   OwnerProfile? @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  ownerId String?
 
-  broker      BrokerProfile?  @relation(fields: [brokerId], references: [id], onDelete: SetNull)
-  brokerId    String?
+  broker   BrokerProfile? @relation(fields: [brokerId], references: [id], onDelete: SetNull)
+  brokerId String?
 
   leases              Lease[]
   maintenanceRequests MaintenanceRequest[]
@@ -152,16 +152,16 @@ model Property {
 }
 
 model Lease {
-  id          String        @id @default(cuid())
-  property    Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  propertyId  String
+  id         String   @id @default(cuid())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
 
-  tenant      TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  tenantId    String
+  tenant   TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId String
 
-  startDate   DateTime
-  endDate     DateTime?
-  isActive    Boolean       @default(true)
+  startDate DateTime
+  endDate   DateTime?
+  isActive  Boolean   @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -172,24 +172,24 @@ model Lease {
 }
 
 model MaintenanceRequest {
-  id           String           @id @default(cuid())
-  property     Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  propertyId   String
+  id         String   @id @default(cuid())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
 
-  tenant       TenantProfile    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  tenantId     String
+  tenant   TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId String
 
   contractor   ContractorProfile? @relation(fields: [contractorId], references: [id], onDelete: SetNull)
   contractorId String?
 
-  type         MaintenanceType
-  description  String           @db.Text
-  imageUrl     String?
+  type        MaintenanceType
+  description String          @db.Text
+  imageUrl    String?
 
-  status       MaintenanceStatus @default(OPEN)
+  status MaintenanceStatus @default(OPEN)
 
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([propertyId])
   @@index([tenantId])
