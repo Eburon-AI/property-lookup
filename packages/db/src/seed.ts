@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Starting database seed...');
 
-  const hashedPassword = await bcrypt.hash('Admin123!', 10);
+  const hashedPassword = await bcrypt.hash('Admin123!', Number(process.env.SALT_ROUNDS) || 10);
 
   const adminUser = await prisma.user.create({
     data: {
@@ -35,6 +35,9 @@ async function main() {
         },
       },
     },
+    include: {
+      contractorProfile: true,
+    },
   });
 
   console.log('Created contractor user:', contractorUser.email);
@@ -50,6 +53,9 @@ async function main() {
       ownerProfile: {
         create: {},
       },
+    },
+    include: {
+      ownerProfile: true,
     },
   });
 
@@ -95,6 +101,9 @@ async function main() {
       tenantProfile: {
         create: {},
       },
+    },
+    include: {
+      tenantProfile: true,
     },
   });
 
